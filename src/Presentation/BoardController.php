@@ -83,6 +83,38 @@ class BoardController
                 }
                 $this->redirect('/');
                 break;
+
+            case 'comment_store':
+                if ($this->isLoggedIn() && $id) {
+                    $this->boardFacade->createComment(
+                        (int)$id,
+                        $_POST['content'],
+                        $_SESSION['username'],
+                        $_SESSION['user_id']
+                    );
+                    $this->redirect("/?action=show&id=$id");
+                }
+                break;
+
+            case 'comment_update':
+                if ($this->isLoggedIn() && $id) {
+                    $this->boardFacade->updateComment(
+                        (int)$id,
+                        $_POST['content'],
+                        $_SESSION['user_id']
+                    );
+                    $postId = $_POST['post_id'];
+                    $this->redirect("/?action=show&id=$postId");
+                }
+                break;
+
+            case 'comment_delete':
+                if ($this->isLoggedIn() && $id) {
+                    $postId = $_POST['post_id'];
+                    $this->boardFacade->deleteComment((int)$id, $_SESSION['user_id']);
+                    $this->redirect("/?action=show&id=$postId");
+                }
+                break;
         }
     }
 
@@ -112,7 +144,8 @@ class BoardController
 
             case 'show':
                 $post = $this->boardFacade->getPost((int)$id);
-                $this->renderPostDetail($post);
+                $comments = $post ? $this->boardFacade->getCommentsByPostId((int)$id) : [];
+                $this->renderPostDetail($post, $comments);
                 break;
 
             case 'create':
@@ -169,7 +202,7 @@ class BoardController
         include __DIR__ . '/Views/post_list.php';
     }
 
-    private function renderPostDetail(?array $post): void
+    private function renderPostDetail(?array $post, array $comments = []): void
     {
         include __DIR__ . '/Views/post_detail.php';
     }

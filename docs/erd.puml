@@ -1,0 +1,60 @@
+@startuml Board ERD
+
+!define table(x) class x << (T,#FFAAAA) >>
+!define pk(x) <u>x</u>
+!define fk(x) <i>x</i>
+
+hide methods
+hide stereotypes
+
+table(users) {
+  pk(id) : BIGINT UNSIGNED
+  username : VARCHAR(50) UNIQUE
+  password : VARCHAR(255)
+  created_at : TIMESTAMP
+}
+
+table(posts) {
+  pk(id) : BIGINT UNSIGNED
+  title : VARCHAR(255)
+  content : TEXT
+  author : VARCHAR(100)
+  fk(user_id) : BIGINT UNSIGNED
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+table(comments) {
+  pk(id) : BIGINT UNSIGNED
+  fk(post_id) : BIGINT UNSIGNED
+  content : TEXT
+  author : VARCHAR(100)
+  fk(user_id) : BIGINT UNSIGNED
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+users ||--o{ posts : "1:N"
+users ||--o{ comments : "1:N"
+posts ||--o{ comments : "1:N"
+
+note right of users
+  사용자 정보
+  - 로그인/회원가입
+  - 게시글/댓글 작성자
+end note
+
+note right of posts
+  게시글 정보
+  - 제목, 내용
+  - 작성자만 수정/삭제 가능
+end note
+
+note right of comments
+  댓글 정보
+  - 게시글에 대한 댓글
+  - 작성자만 수정/삭제 가능
+  - 게시글 삭제 시 CASCADE
+end note
+
+@enduml

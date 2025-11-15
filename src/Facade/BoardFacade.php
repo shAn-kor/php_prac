@@ -4,21 +4,26 @@ namespace Facade;
 
 use Domain\Service\AuthService;
 use Domain\Service\PostService;
+use Domain\Service\CommentService;
 use Infrastructure\Repository\UserRepository;
 use Infrastructure\Repository\PostRepository;
+use Infrastructure\Repository\CommentRepository;
 
 class BoardFacade
 {
     private AuthService $authService;
     private PostService $postService;
+    private CommentService $commentService;
 
     public function __construct()
     {
         $userRepository = new UserRepository();
         $postRepository = new PostRepository();
+        $commentRepository = new CommentRepository();
         
         $this->authService = new AuthService($userRepository);
         $this->postService = new PostService($postRepository);
+        $this->commentService = new CommentService($commentRepository);
     }
 
     // Auth methods
@@ -116,5 +121,49 @@ class BoardFacade
     {
         $post = $this->postService->getPost($postId);
         return $post && $post->canBeEditedBy($userId);
+    }
+
+    // Comment methods
+    public function getCommentsByPostId(int $postId): array
+    {
+        $comments = $this->commentService->getCommentsByPostId($postId);
+        $result = [];
+        
+        foreach ($comments as $comment) {
+            $result[] = [
+                'id' => $comment->getId(),
+                'post_id' => $comment->getPostId(),
+                'content' => $comment->getContent(),
+                'author' => $comment->getAuthor(),
+                'user_id' => $comment->getUserId(),
+                'created_at' => $comment->getCreatedAt()
+            ];
+        }
+        
+        return $result;
+    }
+
+    public function createComment(int $postId, string $content, string $author, int $userId): array
+    {
+        $comment = $this->commentService->createComment($postId, $content, $author, $userId);
+        
+        return [
+            'id' => $comment->getId(),
+            'post_id' => $comment->getPostId(),
+            'content' => $comment->getContent(),
+            'author' => $comment->getAuthor(),
+            'user_id' => $comment->getUserId(),
+            'created_at' => $comment->getCreatedAt()
+        ];
+    }
+
+    public function updateComment(int $id, string $content, int $userId): bool
+    {
+        return $this->commentService->updateComment($id, $content, $userId);
+    }
+
+    public function deleteComment(int $id, int $userId): bool
+    {
+        return $this->commentService->deleteComment($id, $userId);
     }
 }
