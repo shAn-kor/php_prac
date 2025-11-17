@@ -19,6 +19,11 @@ class PostService
         return $this->postRepository->findAll();
     }
 
+    public function getPostsPaginated(int $page, int $limit): array
+    {
+        return $this->postRepository->findPaginated($page, $limit);
+    }
+
     public function getPost(int $id): ?Post
     {
         return $this->postRepository->findById($id);

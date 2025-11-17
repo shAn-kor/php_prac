@@ -10,6 +10,7 @@ class Post
     private string $author;
     private int $userId;
     private ?string $createdAt;
+    private int $commentCount = 0;
 
     public function __construct(?int $id, string $title, string $content, string $author, int $userId, ?string $createdAt = null)
     {
@@ -27,6 +28,8 @@ class Post
     public function getAuthor(): string { return $this->author; }
     public function getUserId(): int { return $this->userId; }
     public function getCreatedAt(): ?string { return $this->createdAt; }
+    public function getCommentCount(): int { return $this->commentCount; }
+    public function setCommentCount(int $count): void { $this->commentCount = $count; }
     
     public function canBeEditedBy(int $userId): bool
     {
