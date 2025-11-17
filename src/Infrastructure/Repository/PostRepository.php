@@ -27,9 +27,41 @@ class PostRepository implements PostRepositoryInterface
                 $data['title'],
                 $data['content'],
                 $data['author'],
-                $data['user_id'],
+                $data['user_id'] ?? 0,
                 $data['created_at']
             );
+        }
+        
+        return $posts;
+    }
+
+    public function findPaginated(int $page, int $limit): array
+    {
+        $offset = ($page - 1) * $limit;
+        $stmt = $this->pdo->prepare("
+            SELECT p.*, COUNT(c.id) as comment_count 
+            FROM posts p 
+            LEFT JOIN comments c ON p.id = c.post_id 
+            GROUP BY p.id 
+            ORDER BY p.id DESC 
+            LIMIT :limit OFFSET :offset
+        ");
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        $posts = [];
+        
+        while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $post = new Post(
+                $data['id'],
+                $data['title'],
+                $data['content'],
+                $data['author'],
+                $data['user_id'] ?? 0,
+                $data['created_at']
+            );
+            $post->setCommentCount($data['comment_count']);
+            $posts[] = $post;
         }
         
         return $posts;
@@ -50,7 +82,7 @@ class PostRepository implements PostRepositoryInterface
             $data['title'],
             $data['content'],
             $data['author'],
-            $data['user_id'],
+            $data['user_id'] ?? 0,
             $data['created_at']
         );
     }
