@@ -34,9 +34,21 @@ table(comments) {
   updated_at : TIMESTAMP
 }
 
+table(attachments) {
+  pk(id) : BIGINT UNSIGNED
+  fk(post_id) : BIGINT UNSIGNED
+  original_name : VARCHAR(255)
+  stored_name : VARCHAR(255)
+  file_path : VARCHAR(500)
+  file_size : BIGINT
+  mime_type : VARCHAR(100)
+  created_at : TIMESTAMP
+}
+
 users ||--o{ posts : "1:N"
 users ||--o{ comments : "1:N"
 posts ||--o{ comments : "1:N"
+posts ||--o{ attachments : "1:N"
 
 note right of users
   사용자 정보
@@ -55,6 +67,13 @@ note right of comments
   - 게시글에 대한 댓글
   - 작성자만 수정/삭제 가능
   - 게시글 삭제 시 CASCADE
+end note
+
+note right of attachments
+  첨부파일 정보
+  - 게시글에 첨부된 파일
+  - 파일 크기/타입 제한
+  - 보안 필터링 적용
 end note
 
 @enduml

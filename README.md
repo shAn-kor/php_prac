@@ -59,10 +59,61 @@ php artisan serve
 
 ## 데이터베이스 구조
 
+### users 테이블
+- id (Primary Key)
+- username (사용자명)
+- password (비밀번호)
+- created_at (생성일)
+
 ### posts 테이블
 - id (Primary Key)
 - title (제목)
 - content (내용)
 - author (작성자)
+- user_id (작성자 ID)
 - created_at (작성일)
 - updated_at (수정일)
+
+### comments 테이블
+- id (Primary Key)
+- post_id (게시글 ID)
+- content (내용)
+- author (작성자)
+- user_id (작성자 ID)
+- created_at (작성일)
+- updated_at (수정일)
+
+### attachments 테이블
+- id (Primary Key)
+- post_id (게시글 ID)
+- original_name (원본 파일명)
+- stored_name (저장된 파일명)
+- file_path (파일 경로)
+- file_size (파일 크기)
+- mime_type (MIME 타입)
+- created_at (생성일)
+
+## 테스트
+
+### 유닛 테스트 실행
+```bash
+./run-tests.sh
+```
+
+### 부하 테스트 실행
+```bash
+./load-test.sh
+```
+
+### 이중화 테스트
+```bash
+docker-compose -f docker-compose.cluster.yml up -d
+```
+
+## 보안 기능
+
+- **CSRF 방어**: 모든 폼에 토큰 적용
+- **XSS 방어**: 입출력 데이터 필터링
+- **파일 업로드 보안**: MIME 타입, 확장자, 크기 제한
+- **SQL Injection 방어**: PDO Prepared Statement 사용
+- **세션 보안**: Redis 기반 세션 클러스터링
