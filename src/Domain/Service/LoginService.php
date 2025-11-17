@@ -5,7 +5,7 @@ namespace Domain\Service;
 use Domain\Entity\User;
 use Domain\Repository\UserRepositoryInterface;
 
-class AuthService
+class LoginService
 {
     private UserRepositoryInterface $userRepository;
 
@@ -27,7 +27,7 @@ class AuthService
 
     public function register(string $username, string $password): ?User
     {
-        if ($this->userRepository->existsByUsername($username)) {
+        if ($this->userRepository->findByUsername($username)) {
             return null;
         }
         
