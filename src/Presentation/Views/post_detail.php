@@ -38,7 +38,7 @@
                 <span><?= htmlspecialchars($attachment['original_name']) ?></span>
                 <small class="text-muted ms-2">(<?= $attachment['formatted_size'] ?>)</small>
             </div>
-            <a href="<?= $attachment['file_path'] ?>" download="<?= htmlspecialchars($attachment['original_name']) ?>" class="btn btn-sm btn-outline-primary">
+            <a href="?action=download&id=<?= $attachment['id'] ?>" class="btn btn-sm btn-outline-primary">
                 <i class="bi-download"></i> 다운로드
             </a>
         </div>
@@ -56,7 +56,10 @@
             <form method="POST" action="?action=comment_store&id=<?= $post['id'] ?>" style="margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 8px;">
                 <input type="hidden" name="csrf_token" value="<?= \Infrastructure\Security\SecurityHelper::generateCSRFToken() ?>">
                 <div class="form-group">
-                    <textarea name="content" placeholder="댓글을 입력하세요..." required style="height: 80px;"></textarea>
+                    <textarea name="content" placeholder="댓글을 입력하세요..." 
+                              maxlength="1000" 
+                              oninput="this.value = this.value.replace(/[';\"\\`]/g, '')" 
+                              required style="height: 80px;"></textarea>
                 </div>
                 <button type="submit" class="btn">댓글 작성</button>
             </form>
@@ -91,7 +94,9 @@
                     <div id="comment-edit-<?= $comment['id'] ?>" style="display: none;">
                         <form method="POST" action="?action=comment_update&id=<?= $comment['id'] ?>">
                             <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
-                            <textarea name="content" style="height: 80px;"><?= htmlspecialchars($comment['content']) ?></textarea>
+                            <textarea name="content" style="height: 80px;" 
+                                      maxlength="1000" 
+                                      oninput="this.value = this.value.replace(/[';\"\\`]/g, '')"><?= htmlspecialchars($comment['content']) ?></textarea>
                             <div style="margin-top: 10px;">
                                 <button type="submit" class="btn">수정 완료</button>
                                 <button type="button" onclick="cancelEdit(<?= $comment['id'] ?>)" class="btn" style="background: #6c757d;">취소</button>
@@ -122,4 +127,35 @@
 <?php else: ?>
     <p>게시글을 찾을 수 없습니다.</p>
 <?php endif; ?>
+
+<!-- 업로드 오류 모달 -->
+<?php if (isset($_SESSION['upload_error'])): ?>
+<div class="modal fade" id="uploadErrorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">파일 업로드 오류</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="bi-exclamation-triangle"></i>
+                    <?= htmlspecialchars($_SESSION['upload_error']) ?>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">확인</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var modal = new bootstrap.Modal(document.getElementById('uploadErrorModal'));
+    modal.show();
+});
+</script>
+<?php unset($_SESSION['upload_error']); ?>
+<?php endif; ?>
+
 <?php $content = ob_get_clean(); include 'layout.php'; ?>

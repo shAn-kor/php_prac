@@ -16,7 +16,7 @@
     <!-- Posts Grid -->
     <div class="row gx-4 gx-lg-5">
         <?php foreach ($posts as $post): ?>
-        <div class="col-lg-6 col-md-12 mb-4">
+        <div class="col-lg-6 col-md-12 mb-4" data-post-id="<?= $post['id'] ?>">
             <div class="post-card h-100">
                 <a href="?action=show&id=<?= $post['id'] ?>" class="post-title">
                     <?= htmlspecialchars($post['title']) ?>
@@ -69,9 +69,6 @@
 let currentPage = 1;
 let isLoading = false;
 let hasMorePosts = true;
-let allPosts = []; // 모든 게시글 데이터 저장
-const POSTS_PER_PAGE = 6;
-const MAX_VISIBLE_POSTS = 18; // DOM에 최대 18개만 유지
 
 function loadMorePosts() {
     if (isLoading || !hasMorePosts) return;
@@ -86,10 +83,17 @@ function loadMorePosts() {
                 hasMorePosts = false;
                 document.getElementById('no-more-posts').style.display = 'block';
             } else {
-                // 데이터만 저장, DOM 업데이트는 별도 처리
-                allPosts.push(...posts);
+                const postsContainer = document.querySelector('.row.gx-4.gx-lg-5');
+                
+                posts.forEach(post => {
+                    // 중복 체크
+                    if (!document.querySelector(`[data-post-id="${post.id}"]`)) {
+                        const postElement = createPostElement(post);
+                        postsContainer.appendChild(postElement);
+                    }
+                });
+                
                 currentPage++;
-                updateVisiblePosts();
             }
         })
         .catch(error => {
@@ -101,41 +105,13 @@ function loadMorePosts() {
         });
 }
 
-function updateVisiblePosts() {
-    const postsContainer = document.querySelector('.row.gx-4.gx-lg-5');
-    
-    // DOM에 너무 많은 요소가 있으면 상위 요소들 제거
-    if (allPosts.length > MAX_VISIBLE_POSTS) {
-        const children = postsContainer.children;
-        const removeCount = Math.min(POSTS_PER_PAGE, children.length - MAX_VISIBLE_POSTS);
-        
-        for (let i = 0; i < removeCount; i++) {
-            if (children[0]) {
-                children[0].remove();
-            }
-        }
-    }
-    
-    // 새로운 게시글만 DOM에 추가
-    const startIndex = Math.max(0, allPosts.length - POSTS_PER_PAGE);
-    const newPosts = allPosts.slice(startIndex);
-    
-    newPosts.forEach(post => {
-        if (!document.querySelector(`[data-post-id="${post.id}"]`)) {
-            const postElement = createPostElement(post);
-            postsContainer.appendChild(postElement);
-        }
-    });
-}
-
 function createPostElement(post) {
     const col = document.createElement('div');
     col.className = 'col-lg-6 col-md-12 mb-4';
-    col.setAttribute('data-post-id', post.id); // 중복 방지용 ID
+    col.setAttribute('data-post-id', post.id);
     
     const createdAt = new Date(post.created_at);
-    const formattedDate = createdAt.getFullYear() + '-' + 
-        String(createdAt.getMonth() + 1).padStart(2, '0') + '-' + 
+    const formattedDate = String(createdAt.getMonth() + 1).padStart(2, '0') + '-' + 
         String(createdAt.getDate()).padStart(2, '0');
     
     col.innerHTML = `
@@ -169,13 +145,36 @@ window.addEventListener('scroll', () => {
         loadMorePosts();
     }
 });
-
-// 디버깅용 정보 표시
-setInterval(() => {
-    const domCount = document.querySelectorAll('[data-post-id]').length;
-    const dataCount = allPosts.length;
-    console.log(`DOM: ${domCount}개, 데이터: ${dataCount}개`);
-}, 5000);
 </script>
+
+<!-- 업로드 오류 모달 -->
+<?php if (isset($_SESSION['upload_error'])): ?>
+<div class="modal fade" id="uploadErrorModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">파일 업로드 오류</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="bi-exclamation-triangle"></i>
+                    <?= htmlspecialchars($_SESSION['upload_error']) ?>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">확인</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var modal = new bootstrap.Modal(document.getElementById('uploadErrorModal'));
+    modal.show();
+});
+</script>
+<?php unset($_SESSION['upload_error']); ?>
+<?php endif; ?>
 
 <?php $content = ob_get_clean(); include 'layout.php'; ?>
