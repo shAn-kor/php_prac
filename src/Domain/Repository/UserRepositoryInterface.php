@@ -8,5 +8,4 @@ interface UserRepositoryInterface
 {
     public function findByUsername(string $username): ?User;
     public function create(string $username, string $password): User;
-    public function existsByUsername(string $username): bool;
 }

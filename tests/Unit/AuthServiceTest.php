@@ -1,19 +1,19 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use Domain\Service\AuthService;
+use Domain\Service\LoginService;
 use Domain\Entity\User;
 use Domain\Repository\UserRepositoryInterface;
 
 class AuthServiceTest extends TestCase
 {
-    private AuthService $authService;
+    private LoginService $authService;
     private UserRepositoryInterface $userRepository;
 
     protected function setUp(): void
     {
         $this->userRepository = $this->createMock(UserRepositoryInterface::class);
-        $this->authService = new AuthService($this->userRepository);
+        $this->authService = new LoginService($this->userRepository);
     }
 
     public function testLoginWithValidCredentials(): void
@@ -64,9 +64,9 @@ class AuthServiceTest extends TestCase
     {
         $this->userRepository
             ->expects($this->once())
-            ->method('existsByUsername')
+            ->method('findByUsername')
             ->with('newuser')
-            ->willReturn(false);
+            ->willReturn(null);
 
         $this->userRepository
             ->expects($this->once())
@@ -84,9 +84,9 @@ class AuthServiceTest extends TestCase
     {
         $this->userRepository
             ->expects($this->once())
-            ->method('existsByUsername')
+            ->method('findByUsername')
             ->with('existinguser')
-            ->willReturn(true);
+            ->willReturn(new User(1, 'existinguser', password_hash('password', PASSWORD_DEFAULT)));
 
         $result = $this->authService->register('existinguser', 'password');
         
