@@ -1,28 +1,60 @@
 <?php ob_start(); ?>
-<div style="margin-bottom: 20px;">
-    <a href="/" class="btn">목록</a>
-    <?php if (isset($_SESSION['user_id']) && $post && $post['user_id'] == $_SESSION['user_id']): ?>
-        <a href="?action=edit&id=<?= $post['id'] ?>" class="btn">수정</a>
-        <form method="POST" action="?action=delete&id=<?= $post['id'] ?>" style="display: inline;">
-            <button type="submit" class="btn btn-danger" onclick="return confirm('삭제하시겠습니까?')">삭제</button>
-        </form>
-    <?php endif; ?>
-</div>
+<div class="card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="/" class="btn"><i class="bi-arrow-left"></i> 목록으로</a>
+        <?php if (isset($_SESSION['user_id']) && $post && $post['user_id'] == $_SESSION['user_id']): ?>
+        <div>
+            <a href="?action=edit&id=<?= $post['id'] ?>" class="btn btn-success"><i class="bi-pencil"></i> 수정</a>
+            <form method="POST" action="?action=delete&id=<?= $post['id'] ?>" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="<?= \Infrastructure\Security\SecurityHelper::generateCSRFToken() ?>">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('삭제하시겠습니까?')"><i class="bi-trash"></i> 삭제</button>
+            </form>
+        </div>
+        <?php endif; ?>
+    </div>
 
 <?php if ($post): ?>
-    <h2><?= htmlspecialchars($post['title']) ?></h2>
-    <p><strong>작성자:</strong> <?= htmlspecialchars($post['author']) ?></p>
-    <p><strong>작성일:</strong> <?= date('Y-m-d H:i', strtotime($post['created_at'])) ?></p>
-    <hr>
-    <div style="white-space: pre-wrap;"><?= htmlspecialchars($post['content']) ?></div>
+    <div class="text-center mb-4">
+        <h1 class="display-5 fw-bold text-primary mb-3"><?= htmlspecialchars($post['title']) ?></h1>
+        <div class="d-flex justify-content-center align-items-center text-muted">
+            <span class="me-4"><i class="bi-person-circle"></i> <?= htmlspecialchars($post['author']) ?></span>
+            <span><i class="bi-calendar3"></i> <?= date('Y년 m월 d일 H:i', strtotime($post['created_at'])) ?></span>
+        </div>
+    </div>
+    <hr class="my-4">
+    <div class="fs-5 lh-lg" style="white-space: pre-wrap; line-height: 1.8;"><?= nl2br(htmlspecialchars($post['content'])) ?></div>
     
-    <!-- 댓글 섹션 -->
-    <div style="margin-top: 40px;">
-        <h3>댓글 (<?= count($comments) ?>)</h3>
+</div>
+
+<!-- 첨부파일 섹션 -->
+<?php if (!empty($attachments)): ?>
+<div class="card mt-4">
+    <h4 class="mb-3"><i class="bi-paperclip"></i> 첨부파일 (<?= count($attachments) ?>)</h4>
+    <div class="list-group list-group-flush">
+        <?php foreach ($attachments as $attachment): ?>
+        <div class="list-group-item d-flex justify-content-between align-items-center">
+            <div>
+                <i class="bi-file-earmark me-2"></i>
+                <span><?= htmlspecialchars($attachment['original_name']) ?></span>
+                <small class="text-muted ms-2">(<?= $attachment['formatted_size'] ?>)</small>
+            </div>
+            <a href="<?= $attachment['file_path'] ?>" download="<?= htmlspecialchars($attachment['original_name']) ?>" class="btn btn-sm btn-outline-primary">
+                <i class="bi-download"></i> 다운로드
+            </a>
+        </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+<?php endif; ?>
+    
+<!-- 댓글 섹션 -->
+<div class="card mt-4">
+    <h3 class="mb-4"><i class="bi-chat-dots"></i> 댓글 (<?= count($comments) ?>)</h3>
         
         <!-- 댓글 작성 폼 -->
         <?php if (isset($_SESSION['user_id'])): ?>
             <form method="POST" action="?action=comment_store&id=<?= $post['id'] ?>" style="margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                <input type="hidden" name="csrf_token" value="<?= \Infrastructure\Security\SecurityHelper::generateCSRFToken() ?>">
                 <div class="form-group">
                     <textarea name="content" placeholder="댓글을 입력하세요..." required style="height: 80px;"></textarea>
                 </div>
@@ -37,7 +69,7 @@
         <!-- 댓글 목록 -->
         <div style="margin-top: 20px;">
             <?php foreach ($comments as $comment): ?>
-                <div style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: white;">
+                <div class="comment-card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                         <div>
                             <strong><?= htmlspecialchars($comment['author']) ?></strong>
