@@ -10,7 +10,7 @@ class AttachmentService
     private AttachmentRepositoryInterface $attachmentRepository;
     private array $allowedMimeTypes = [
         'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-        'application/pdf',
+        'application/pdf', 'application/x-pdf',
         'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         'text/plain', 'text/csv'
@@ -27,6 +27,27 @@ class AttachmentService
         return $this->attachmentRepository->findByPostId($postId);
     }
 
+    public function getAttachment(int $id): ?Attachment
+    {
+        return $this->attachmentRepository->findById($id);
+    }
+
+    public function deleteAttachment(int $id): bool
+    {
+        $attachment = $this->attachmentRepository->findById($id);
+        if ($attachment) {
+            // 파일 시스템에서 삭제
+            $filePath = __DIR__ . '/../../../storage/uploads/' . $attachment->getFilePath();
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+            
+            // DB에서 삭제
+            return $this->attachmentRepository->delete($id);
+        }
+        return false;
+    }
+
     public function uploadFiles(int $postId, array $files): array
     {
         $uploadedFiles = [];
@@ -37,6 +58,8 @@ class AttachmentService
                 if ($result) {
                     $uploadedFiles[] = $result;
                 }
+            } else {
+                error_log("File upload error: " . $file['error'] . " for file: " . ($file['name'] ?? 'unknown'));
             }
         }
         
@@ -53,7 +76,7 @@ class AttachmentService
         $originalName = $file['name'];
         $extension = pathinfo($originalName, PATHINFO_EXTENSION);
         $storedName = uniqid() . '_' . time() . '.' . $extension;
-        $uploadDir = __DIR__ . '/../../../public/uploads/';
+        $uploadDir = __DIR__ . '/../../../storage/uploads/';
         $filePath = $uploadDir . $storedName;
 
         if (!is_dir($uploadDir)) {
@@ -65,7 +88,7 @@ class AttachmentService
                 $postId,
                 $originalName,
                 $storedName,
-                '/uploads/' . $storedName,
+                $storedName,
                 $file['size'],
                 $file['type']
             );
@@ -76,13 +99,17 @@ class AttachmentService
 
     private function validateFile(array $file): bool
     {
+        $logFile = __DIR__ . '/../../../storage/logs/upload.log';
+        
         // 파일 크기 검증
         if ($file['size'] > $this->maxFileSize) {
+            file_put_contents($logFile, date('Y-m-d H:i:s') . " File size too large: " . $file['size'] . " bytes for " . $file['name'] . "\n", FILE_APPEND);
             return false;
         }
 
         // MIME 타입 검증
         if (!in_array($file['type'], $this->allowedMimeTypes)) {
+            file_put_contents($logFile, date('Y-m-d H:i:s') . " MIME type not allowed: " . $file['type'] . " for " . $file['name'] . "\n", FILE_APPEND);
             return false;
         }
 
@@ -90,6 +117,12 @@ class AttachmentService
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'csv'];
         
-        return in_array($extension, $allowedExtensions);
+        if (!in_array($extension, $allowedExtensions)) {
+            file_put_contents($logFile, date('Y-m-d H:i:s') . " Extension not allowed: " . $extension . " for " . $file['name'] . "\n", FILE_APPEND);
+            return false;
+        }
+        
+        file_put_contents($logFile, date('Y-m-d H:i:s') . " File validation passed for: " . $file['name'] . " (" . $file['type'] . ")\n", FILE_APPEND);
+        return true;
     }
 }

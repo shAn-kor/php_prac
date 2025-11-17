@@ -4,6 +4,8 @@ storage/logs/*
 storage/framework/cache/*
 storage/framework/sessions/*
 storage/framework/views/*
+storage/uploads/*
+!storage/uploads/.gitkeep
 bootstrap/cache/*
 node_modules/
 .DS_Store
