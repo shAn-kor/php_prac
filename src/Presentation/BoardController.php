@@ -2,7 +2,8 @@
 
 namespace Presentation;
 
-use Facade\BoardFacade;
+use Application\BoardFacade;
+use Infrastructure\Security\SecurityHelper;
 
 class BoardController
 {
@@ -22,6 +23,10 @@ class BoardController
 
         // POST 요청 처리
         if ($_POST) {
+            // CSRF 토큰 검증 (로그인/회원가입 제외)
+            if (!in_array($action, ['login', 'register']) && !SecurityHelper::validateCSRFToken($_POST['csrf_token'] ?? '')) {
+                die('CSRF token validation failed');
+            }
             $this->handlePostRequest($action, $id);
             return;
         }
@@ -55,12 +60,18 @@ class BoardController
 
             case 'store':
                 if ($this->isLoggedIn()) {
-                    $this->boardFacade->createPost(
-                        $_POST['title'],
-                        $_POST['content'],
+                    $post = $this->boardFacade->createPost(
+                        SecurityHelper::sanitizeInput($_POST['title']),
+                        SecurityHelper::preventXSS($_POST['content']),
                         $_SESSION['username'],
                         $_SESSION['user_id']
                     );
+                    
+                    // 파일 업로드 처리
+                    if (!empty($_FILES['attachments']['name'][0])) {
+                        $files = $this->reorganizeFilesArray($_FILES['attachments']);
+                        $this->boardFacade->uploadFiles($post['id'], $files);
+                    }
                 }
                 $this->redirect('/');
                 break;
@@ -88,7 +99,7 @@ class BoardController
                 if ($this->isLoggedIn() && $id) {
                     $this->boardFacade->createComment(
                         (int)$id,
-                        $_POST['content'],
+                        SecurityHelper::preventXSS($_POST['content']),
                         $_SESSION['username'],
                         $_SESSION['user_id']
                     );
@@ -145,7 +156,8 @@ class BoardController
             case 'show':
                 $post = $this->boardFacade->getPost((int)$id);
                 $comments = $post ? $this->boardFacade->getCommentsByPostId((int)$id) : [];
-                $this->renderPostDetail($post, $comments);
+                $attachments = $post ? $this->boardFacade->getAttachmentsByPostId((int)$id) : [];
+                $this->renderPostDetail($post, $comments, $attachments);
                 break;
 
             case 'create':
@@ -169,8 +181,17 @@ class BoardController
                 }
                 break;
 
+            case 'api_posts':
+                $page = (int)($_GET['page'] ?? 1);
+                $limit = 6;
+                $posts = $this->boardFacade->getPostsPaginated($page, $limit);
+                header('Content-Type: application/json');
+                echo json_encode($posts);
+                exit;
+                break;
+
             default:
-                $posts = $this->boardFacade->getAllPosts();
+                $posts = $this->boardFacade->getPostsPaginated(1, 6);
                 $this->renderPostList($posts);
                 break;
         }
@@ -202,9 +223,29 @@ class BoardController
         include __DIR__ . '/Views/post_list.php';
     }
 
-    private function renderPostDetail(?array $post, array $comments = []): void
+    private function renderPostDetail(?array $post, array $comments = [], array $attachments = []): void
     {
         include __DIR__ . '/Views/post_detail.php';
+    }
+
+    private function reorganizeFilesArray(array $files): array
+    {
+        $reorganized = [];
+        $fileCount = count($files['name']);
+        
+        for ($i = 0; $i < $fileCount; $i++) {
+            if ($files['error'][$i] === UPLOAD_ERR_OK) {
+                $reorganized[] = [
+                    'name' => $files['name'][$i],
+                    'type' => $files['type'][$i],
+                    'tmp_name' => $files['tmp_name'][$i],
+                    'error' => $files['error'][$i],
+                    'size' => $files['size'][$i]
+                ];
+            }
+        }
+        
+        return $reorganized;
     }
 
     private function renderPostForm(?array $post = null): void
