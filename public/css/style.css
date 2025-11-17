@@ -1,0 +1,300 @@
+/* Creative Theme Inspired Design */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Merriweather', 'Roboto Slab', serif;
+    line-height: 1.6;
+    color: #212529;
+    background: linear-gradient(to bottom, #f4623a 0%, #cd201f 100%);
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+.main-content {
+    padding: 50px 20px;
+    min-height: calc(100vh - 120px);
+}
+
+/* Creative Header */
+.header {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 0;
+    padding: 30px;
+    margin-bottom: 0;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, #f4623a, #cd201f);
+    opacity: 0.1;
+    z-index: -1;
+}
+
+.header h1 {
+    color: #f4623a;
+    font-size: 3rem;
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin: 0;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 14px;
+    color: #666;
+}
+
+/* Creative Buttons */
+.btn {
+    display: inline-block;
+    padding: 15px 30px;
+    background: #f4623a;
+    color: white;
+    text-decoration: none;
+    border-radius: 0;
+    border: 3px solid #f4623a;
+    cursor: pointer;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.btn:hover {
+    background: transparent;
+    color: #f4623a;
+    transform: none;
+}
+
+.btn-danger {
+    background: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background: transparent;
+    color: #dc3545;
+}
+
+.btn-success {
+    background: #28a745;
+    border-color: #28a745;
+}
+
+.btn-success:hover {
+    background: transparent;
+    color: #28a745;
+}
+
+/* Creative Cards */
+.card {
+    background: white;
+    border-radius: 0;
+    padding: 40px;
+    margin-bottom: 30px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border-top: 5px solid #f4623a;
+}
+
+.card:hover {
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    transform: translateY(-10px);
+}
+
+/* Creative Post Grid */
+.post-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 30px;
+    margin-top: 50px;
+    padding: 0 20px;
+}
+
+.post-card {
+    background: white;
+    border-radius: 0;
+    padding: 30px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border-left: 5px solid #f4623a;
+    position: relative;
+    overflow: hidden;
+}
+
+.post-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: linear-gradient(45deg, #f4623a, #cd201f);
+}
+
+.post-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+.post-title {
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: #212529;
+    margin-bottom: 15px;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    line-height: 1.2;
+}
+
+.post-title:hover {
+    color: #f4623a;
+}
+
+.post-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+/* Creative Forms */
+.form-container {
+    background: white;
+    border-radius: 0;
+    padding: 50px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    max-width: 700px;
+    margin: 50px auto;
+    border-top: 5px solid #f4623a;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 15px;
+    border: 0;
+    border-bottom: 2px solid #e9ecef;
+    border-radius: 0;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+    background: transparent;
+    font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-bottom-color: #f4623a;
+    box-shadow: none;
+}
+
+/* Creative Login Form */
+.login-form {
+    max-width: 500px;
+    margin: 100px auto;
+    background: white;
+    border-radius: 0;
+    padding: 60px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    border-top: 5px solid #f4623a;
+}
+
+.login-form h2 {
+    color: #212529;
+    margin-bottom: 40px;
+    font-size: 2.5rem;
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+
+/* Comments */
+.comments-section {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 2px solid #eee;
+}
+
+.comment-card {
+    background: rgba(248, 249, 250, 0.8);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-left: 4px solid #667eea;
+}
+
+/* Attachments */
+.attachments-section {
+    background: rgba(248, 249, 250, 0.8);
+    border-radius: 15px;
+    padding: 25px;
+    margin: 30px 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    
+    .header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .header h1 {
+        font-size: 2rem;
+    }
+    
+    .post-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-container,
+    .login-form {
+        padding: 30px 20px;
+    }
+}
