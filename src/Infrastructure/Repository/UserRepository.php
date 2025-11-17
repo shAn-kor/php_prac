@@ -32,8 +32,11 @@ class UserRepository implements UserRepositoryInterface
     public function create(string $username, string $password): User
     {
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $this->pdo->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
-        $stmt->execute([$username, $hashedPassword]);
+        $koreaTime = new \DateTime('now', new \DateTimeZone('Asia/Seoul'));
+        $createdAt = $koreaTime->format('Y-m-d H:i:s');
+        
+        $stmt = $this->pdo->prepare("INSERT INTO users (username, password, created_at) VALUES (?, ?, ?)");
+        $stmt->execute([$username, $hashedPassword, $createdAt]);
         
         $id = $this->pdo->lastInsertId();
         return new User($id, $username, $hashedPassword);

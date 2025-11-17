@@ -38,30 +38,24 @@ class PostRepository implements PostRepositoryInterface
     public function findPaginated(int $page, int $limit): array
     {
         $offset = ($page - 1) * $limit;
-        $stmt = $this->pdo->prepare("
-            SELECT p.*, COUNT(c.id) as comment_count 
-            FROM posts p 
-            LEFT JOIN comments c ON p.id = c.post_id 
-            GROUP BY p.id 
-            ORDER BY p.id DESC 
-            LIMIT :limit OFFSET :offset
-        ");
+        $stmt = $this->pdo->prepare("SELECT * FROM posts ORDER BY id DESC LIMIT :limit OFFSET :offset");
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
         $posts = [];
         
-        while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $post = new Post(
-                $data['id'],
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        
+        foreach ($results as $data) {
+            $posts[] = new Post(
+                (int)$data['id'],
                 $data['title'],
                 $data['content'],
                 $data['author'],
-                $data['user_id'] ?? 0,
+                (int)($data['user_id'] ?? 0),
                 $data['created_at']
             );
-            $post->setCommentCount($data['comment_count']);
-            $posts[] = $post;
         }
         
         return $posts;
@@ -89,11 +83,14 @@ class PostRepository implements PostRepositoryInterface
 
     public function create(string $title, string $content, string $author, int $userId): Post
     {
-        $stmt = $this->pdo->prepare("INSERT INTO posts (title, content, author, user_id) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$title, $content, $author, $userId]);
+        $koreaTime = new \DateTime('now', new \DateTimeZone('Asia/Seoul'));
+        $createdAt = $koreaTime->format('Y-m-d H:i:s');
+        
+        $stmt = $this->pdo->prepare("INSERT INTO posts (title, content, author, user_id, created_at) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$title, $content, $author, $userId, $createdAt]);
         
         $id = $this->pdo->lastInsertId();
-        return new Post($id, $title, $content, $author, $userId, date('Y-m-d H:i:s'));
+        return new Post($id, $title, $content, $author, $userId, $createdAt);
     }
 
     public function update(int $id, string $title, string $content): bool
@@ -104,7 +101,26 @@ class PostRepository implements PostRepositoryInterface
 
     public function delete(int $id): bool
     {
-        $stmt = $this->pdo->prepare("DELETE FROM posts WHERE id=?");
-        return $stmt->execute([$id]);
+        try {
+            $this->pdo->beginTransaction();
+            
+            // 댓글 삭제
+            $stmt = $this->pdo->prepare("DELETE FROM comments WHERE post_id=?");
+            $stmt->execute([$id]);
+            
+            // 첨부파일 삭제
+            $stmt = $this->pdo->prepare("DELETE FROM attachments WHERE post_id=?");
+            $stmt->execute([$id]);
+            
+            // 게시글 삭제
+            $stmt = $this->pdo->prepare("DELETE FROM posts WHERE id=?");
+            $result = $stmt->execute([$id]);
+            
+            $this->pdo->commit();
+            return $result;
+        } catch (\Exception $e) {
+            $this->pdo->rollBack();
+            return false;
+        }
     }
 }

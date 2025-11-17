@@ -38,18 +38,49 @@ class AttachmentRepository implements AttachmentRepositoryInterface
         return $attachments;
     }
 
+    public function findById(int $id): ?Attachment
+    {
+        $stmt = $this->pdo->prepare("SELECT * FROM attachments WHERE id = ?");
+        $stmt->execute([$id]);
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$data) {
+            return null;
+        }
+        
+        return new Attachment(
+            $data['id'],
+            $data['post_id'],
+            $data['original_name'],
+            $data['stored_name'],
+            $data['file_path'],
+            $data['file_size'],
+            $data['mime_type'],
+            $data['created_at']
+        );
+    }
+
     public function create(int $postId, string $originalName, string $storedName, string $filePath, int $fileSize, string $mimeType): Attachment
     {
-        $stmt = $this->pdo->prepare("INSERT INTO attachments (post_id, original_name, stored_name, file_path, file_size, mime_type) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$postId, $originalName, $storedName, $filePath, $fileSize, $mimeType]);
+        $koreaTime = new \DateTime('now', new \DateTimeZone('Asia/Seoul'));
+        $createdAt = $koreaTime->format('Y-m-d H:i:s');
+        
+        $stmt = $this->pdo->prepare("INSERT INTO attachments (post_id, original_name, stored_name, file_path, file_size, mime_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([$postId, $originalName, $storedName, $filePath, $fileSize, $mimeType, $createdAt]);
         
         $id = $this->pdo->lastInsertId();
-        return new Attachment($id, $postId, $originalName, $storedName, $filePath, $fileSize, $mimeType, date('Y-m-d H:i:s'));
+        return new Attachment($id, $postId, $originalName, $storedName, $filePath, $fileSize, $mimeType, $createdAt);
     }
 
     public function deleteByPostId(int $postId): bool
     {
         $stmt = $this->pdo->prepare("DELETE FROM attachments WHERE post_id = ?");
         return $stmt->execute([$postId]);
+    }
+
+    public function delete(int $id): bool
+    {
+        $stmt = $this->pdo->prepare("DELETE FROM attachments WHERE id = ?");
+        return $stmt->execute([$id]);
     }
 }

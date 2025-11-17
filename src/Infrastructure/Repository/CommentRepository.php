@@ -19,16 +19,20 @@ class CommentRepository implements CommentRepositoryInterface
     public function findByPostId(int $postId): array
     {
         $stmt = $this->pdo->prepare("SELECT * FROM comments WHERE post_id = ? ORDER BY created_at ASC");
-        $stmt->execute([$postId]);
+        $stmt->bindValue(1, $postId, PDO::PARAM_INT);
+        $stmt->execute();
         $comments = [];
         
-        while ($data = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+        
+        foreach ($results as $data) {
             $comments[] = new Comment(
-                $data['id'],
-                $data['post_id'],
+                (int)$data['id'],
+                (int)$data['post_id'],
                 $data['content'],
                 $data['author'],
-                $data['user_id'],
+                (int)$data['user_id'],
                 $data['created_at']
             );
         }
@@ -58,11 +62,14 @@ class CommentRepository implements CommentRepositoryInterface
 
     public function create(int $postId, string $content, string $author, int $userId): Comment
     {
-        $stmt = $this->pdo->prepare("INSERT INTO comments (post_id, content, author, user_id) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$postId, $content, $author, $userId]);
+        $koreaTime = new \DateTime('now', new \DateTimeZone('Asia/Seoul'));
+        $createdAt = $koreaTime->format('Y-m-d H:i:s');
+        
+        $stmt = $this->pdo->prepare("INSERT INTO comments (post_id, content, author, user_id, created_at) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$postId, $content, $author, $userId, $createdAt]);
         
         $id = $this->pdo->lastInsertId();
-        return new Comment($id, $postId, $content, $author, $userId, date('Y-m-d H:i:s'));
+        return new Comment($id, $postId, $content, $author, $userId, $createdAt);
     }
 
     public function update(int $id, string $content): bool
@@ -75,5 +82,12 @@ class CommentRepository implements CommentRepositoryInterface
     {
         $stmt = $this->pdo->prepare("DELETE FROM comments WHERE id=?");
         return $stmt->execute([$id]);
+    }
+
+    public function countByPostId(int $postId): int
+    {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM comments WHERE post_id = ?");
+        $stmt->execute([$postId]);
+        return (int)$stmt->fetchColumn();
     }
 }
