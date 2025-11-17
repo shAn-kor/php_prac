@@ -1,23 +1,54 @@
 <?php ob_start(); ?>
-<div class="login-form">
-    <h2>로그인</h2>
-    <?php if ($error): ?>
-        <div class="error"><?= htmlspecialchars($error) ?></div>
-    <?php endif; ?>
-    <form method="POST">
-        <div class="form-group">
-            <label>아이디</label>
-            <input type="text" name="username" required>
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="login-form">
+            <div class="text-center mb-4">
+                <i class="bi-person-circle fs-1 text-primary mb-3"></i>
+                <h2 class="fw-bold text-primary">로그인</h2>
+                <hr class="divider" />
+            </div>
+            
+            <?php if ($error): ?>
+                <div class="alert alert-danger" role="alert">
+                    <i class="bi-exclamation-triangle"></i> <?= htmlspecialchars($error) ?>
+                </div>
+            <?php endif; ?>
+            
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?= \Infrastructure\Security\SecurityHelper::generateCSRFToken() ?>">
+                
+                <div class="form-group">
+                    <label class="form-label fw-bold">
+                        <i class="bi-person"></i> 아이디
+                    </label>
+                    <input type="text" name="username" class="form-control form-control-lg" 
+                           placeholder="아이디를 입력하세요" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label fw-bold">
+                        <i class="bi-lock"></i> 비밀번호
+                    </label>
+                    <input type="password" name="password" class="form-control form-control-lg" 
+                           placeholder="비밀번호를 입력하세요" required>
+                </div>
+                
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi-box-arrow-in-right"></i> 로그인
+                    </button>
+                    <a href="?action=register" class="btn btn-outline-success btn-lg">
+                        <i class="bi-person-plus"></i> 회원가입
+                    </a>
+                </div>
+            </form>
+            
+            <div class="alert alert-info mt-4" role="alert">
+                <i class="bi-info-circle"></i> <strong>테스트 계정</strong><br>
+                admin / password<br>
+                user1 / password
+            </div>
         </div>
-        <div class="form-group">
-            <label>비밀번호</label>
-            <input type="password" name="password" required>
-        </div>
-        <button type="submit" class="btn">로그인</button>
-        <a href="?action=register" class="btn btn-success">회원가입</a>
-    </form>
-    <p style="margin-top: 20px; font-size: 12px; color: #666;">
-        테스트 계정: admin / password 또는 user1 / password
-    </p>
+    </div>
 </div>
 <?php $content = ob_get_clean(); include 'layout.php'; ?>
