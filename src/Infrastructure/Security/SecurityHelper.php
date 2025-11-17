@@ -32,4 +32,18 @@ class SecurityHelper
         $allowedTags = '<p><br><strong><em><u><h1><h2><h3><h4><h5><h6><ul><ol><li><blockquote>';
         return strip_tags($content, $allowedTags);
     }
+
+    public static function preventSQLInjection(string $input): string
+    {
+        // SQL 인젝션 위험 문자 치환
+        $dangerous = ['--', ';', '/*', '*/', 'xp_', 'sp_', 'UNION', 'SELECT', 'INSERT', 'UPDATE', 'DELETE', 'DROP', 'CREATE', 'ALTER', 'EXEC', 'EXECUTE'];
+        $safe = ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        
+        $input = str_ireplace($dangerous, $safe, $input);
+        
+        // 추가 특수문자 치환
+        $input = str_replace(["'", '"', '`', '\\'], ['&#39;', '&quot;', '&#96;', '&#92;'], $input);
+        
+        return trim($input);
+    }
 }

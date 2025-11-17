@@ -22,7 +22,9 @@
                         <i class="bi-person"></i> 아이디
                     </label>
                     <input type="text" name="username" class="form-control form-control-lg" 
-                           placeholder="사용할 아이디를 입력하세요" required>
+                           placeholder="사용할 아이디를 입력하세요" 
+                           pattern="[a-zA-Z0-9_]+" title="영문, 숫자, 언더스코어만 사용 가능" 
+                           maxlength="20" required>
                 </div>
                 
                 <div class="form-group">
@@ -30,7 +32,8 @@
                         <i class="bi-lock"></i> 비밀번호
                     </label>
                     <input type="password" name="password" class="form-control form-control-lg" 
-                           placeholder="비밀번호를 입력하세요" required>
+                           placeholder="비밀번호를 입력하세요" 
+                           maxlength="50" required>
                 </div>
                 
                 <div class="d-grid gap-2 mt-4">
