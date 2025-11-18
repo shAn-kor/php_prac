@@ -48,6 +48,22 @@ class AttachmentService
         return false;
     }
 
+    public function deleteAttachmentsByPostId(int $postId): bool
+    {
+        $attachments = $this->attachmentRepository->findByPostId($postId);
+        
+        foreach ($attachments as $attachment) {
+            // 파일 시스템에서 삭제
+            $filePath = __DIR__ . '/../../../storage/uploads/' . $attachment->getFilePath();
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+        }
+        
+        // DB에서 모든 첨부파일 삭제
+        return $this->attachmentRepository->deleteByPostId($postId);
+    }
+
     public function uploadFiles(int $postId, array $files): array
     {
         $uploadedFiles = [];

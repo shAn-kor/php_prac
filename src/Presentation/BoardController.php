@@ -145,6 +145,9 @@ class BoardController
 
             case 'delete':
                 if ($this->isLoggedIn() && $id) {
+                    // 첫부파일 먼저 삭제
+                    $this->attachmentService->deleteAttachmentsByPostId((int)$id);
+                    // 게시글 삭제
                     $this->postService->deletePost((int)$id, $_SESSION['user_id']);
                 }
                 $this->redirect('/');
